@@ -1,0 +1,96 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include <string.h>
+#include <locale.h>
+const int G = 5;
+typedef struct Node {
+    int vertex;
+    struct Node* next;
+} Node;
+Node* adjList[G]; // Массив указателей для хранения списков смежности
+int visited[G]; // Массив для отслеживания посещённых вершин
+
+// Функция для добавления ребра в список смежности
+void addEdge(int src, int dest) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->vertex = dest;
+    newNode->next = adjList[src]; // Добавляем узел в начало списка
+    adjList[src] = newNode;
+
+    // Поскольку граф неориентированный, добавляем рёбра в обе стороны
+    newNode = (Node*)malloc(sizeof(Node));
+    newNode->vertex = src; // добавляем обратное ребро
+    newNode->next = adjList[dest]; // Добавляем узел в начало списка
+    adjList[dest] = newNode;
+}
+
+// Функция для выполнения обхода в глубину
+void DFS(int v) {
+    visited[v] = 1;  // Помечаем текущую вершину как посещённую
+    printf("%d ", v); // Выводим текущую вершину
+
+    // Обходим всех соседей текущей вершины
+    Node* temp = adjList[v];
+    while (temp) {
+        if (!visited[temp->vertex]) {
+            DFS(temp->vertex); // Рекурсивно вызываем DFS для соседней вершины
+        }
+        temp = temp->next;
+    }
+}
+// Функция для освобождения памяти, выделенной под список смежности
+void freeGraph() {
+    for (int i = 0; i < G; i++) {
+        Node* temp = adjList[i];
+        while (temp) {
+            Node* toFree = temp;
+            temp = temp->next;
+            free(toFree); // Освобождаем память для узла
+        }
+    }
+}
+int main() {
+    setlocale(LC_ALL, "Russian");
+    srand(time(NULL));
+
+    // Инициализация списков смежности
+    for (int i = 0; i < G; i++) {
+        adjList[i] = NULL; // Изначально пусто
+        visited[i] = 0; // Все вершины не посещены
+    }
+
+    // Генерация случайных рёбер для неориентированного графа
+    for (int i = 0; i < G; i++) {
+        for (int j = i + 1; j < G; j++) {
+            if (rand() % 2) { // С вероятностью 0.5 добавляем ребро
+                addEdge(i, j); // Добавляем ребро в граф
+            }
+        }
+    }
+    // Вывод списков смежности на экран
+    printf("Списки смежности:\n");
+    for (int i = 0; i < G; i++) {
+        printf("%d:", i);
+        Node* temp = adjList[i];
+        while (temp) {
+            printf(" %d", temp->vertex);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+
+    // Инициализация массива посещённых вершин
+    for (int i = 0; i < G; i++) {
+        visited[i] = 0;
+    }
+    // Запуск обхода в глубину начиная с первой вершины (0)
+    printf("Обход в глубину (DFS):\n");
+    DFS(0); // Начинаем с вершины 0
+    // Освобождаем выделенную память
+    freeGraph();
+
+    return 0;
+}
